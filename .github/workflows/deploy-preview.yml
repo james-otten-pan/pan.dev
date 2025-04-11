@@ -1,8 +1,10 @@
 name: "Deploy Preview"
 
 on:
-  pull_request_target:
-    branches: [ master ]
+  push:
+    branches: [ james/test ]
+  # pull_request_target:
+  #   branches: [ master ]
 
 jobs:
   # precheck:
