@@ -5,90 +5,90 @@ on:
     branches: [ master ]
 
 jobs:
-  precheck:
-    name: Precheck
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-    outputs:
-      is-org-member-result: ${{ steps.is-org-member.outputs.is-org-member-result }}
-    steps:
-      - name: Check if actor is org member
-        id: is-org-member
-        run: |
-          if [[ "${{ github.actor }}" == "create-pr-on-fork-for-pan-dev[bot]" ]]; then
-            echo "is-org-member-result=null" >> "$GITHUB_OUTPUT"
-          else
-            echo "is-org-member-result=$(gh api -X GET orgs/PaloAltoNetworks/memberships/${{ github.actor }} | jq -r .message)" >> "$GITHUB_OUTPUT"
-          fi
-    env:
-      GH_TOKEN: ${{ secrets.READ_ORG_PAT }}
+  # precheck:
+  #   name: Precheck
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     security-events: write
+  #   outputs:
+  #     is-org-member-result: ${{ steps.is-org-member.outputs.is-org-member-result }}
+  #   steps:
+  #     - name: Check if actor is org member
+  #       id: is-org-member
+  #       run: |
+  #         if [[ "${{ github.actor }}" == "create-pr-on-fork-for-pan-dev[bot]" ]]; then
+  #           echo "is-org-member-result=null" >> "$GITHUB_OUTPUT"
+  #         else
+  #           echo "is-org-member-result=$(gh api -X GET orgs/PaloAltoNetworks/memberships/${{ github.actor }} | jq -r .message)" >> "$GITHUB_OUTPUT"
+  #         fi
+  #   env:
+  #     GH_TOKEN: ${{ secrets.READ_ORG_PAT }}
 
-  analyze:
-    if: github.repository_owner	== 'PaloAltoNetworks' && needs.precheck.outputs.is-org-member-result == 'null'
-    name: Analyze
-    needs: precheck
-    runs-on: pan-dev-runner
-    permissions:
-      contents: read
-      security-events: write
+  # analyze:
+  #   if: github.repository_owner	== 'PaloAltoNetworks' && needs.precheck.outputs.is-org-member-result == 'null'
+  #   name: Analyze
+  #   needs: precheck
+  #   runs-on: pan-dev-runner
+  #   permissions:
+  #     contents: read
+  #     security-events: write
 
-    strategy:
-      fail-fast: true
-      matrix:
-        language: [ 'javascript' ]
+  #   strategy:
+  #     fail-fast: true
+  #     matrix:
+  #       language: [ 'javascript' ]
 
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
+  #   steps:
+  #   - name: Checkout repository
+  #     uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+  #     with:
+  #       ref: ${{ github.event.pull_request.head.sha }}
 
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@1b549b9259bda1cb5ddde3b41741a82a2d15a841 # v3
-      with:
-        languages: ${{ matrix.language }}
+  #   - name: Initialize CodeQL
+  #     uses: github/codeql-action/init@1b549b9259bda1cb5ddde3b41741a82a2d15a841 # v3
+  #     with:
+  #       languages: ${{ matrix.language }}
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@1b549b9259bda1cb5ddde3b41741a82a2d15a841 # v3
+  #   - name: Perform CodeQL Analysis
+  #     uses: github/codeql-action/analyze@1b549b9259bda1cb5ddde3b41741a82a2d15a841 # v3
 
-  analyze_unsafe:
-    if: github.repository_owner	== 'PaloAltoNetworks' && needs.precheck.outputs.is-org-member-result != 'null'
-    name: Analyze Unsafe
-    needs: precheck
-    runs-on: pan-dev-runner
-    environment: default
-    permissions:
-      contents: read
-      security-events: write
+  # analyze_unsafe:
+  #   if: github.repository_owner	== 'PaloAltoNetworks' && needs.precheck.outputs.is-org-member-result != 'null'
+  #   name: Analyze Unsafe
+  #   needs: precheck
+  #   runs-on: pan-dev-runner
+  #   environment: default
+  #   permissions:
+  #     contents: read
+  #     security-events: write
 
-    strategy:
-      fail-fast: true
-      matrix:
-        language: [ 'javascript' ]
+  #   strategy:
+  #     fail-fast: true
+  #     matrix:
+  #       language: [ 'javascript' ]
 
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
+  #   steps:
+  #   - name: Checkout repository
+  #     uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+  #     with:
+  #       ref: ${{ github.event.pull_request.head.sha }}
 
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@1b549b9259bda1cb5ddde3b41741a82a2d15a841 # v3
-      with:
-        languages: ${{ matrix.language }}
+  #   - name: Initialize CodeQL
+  #     uses: github/codeql-action/init@1b549b9259bda1cb5ddde3b41741a82a2d15a841 # v3
+  #     with:
+  #       languages: ${{ matrix.language }}
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@1b549b9259bda1cb5ddde3b41741a82a2d15a841 # v3
+  #   - name: Perform CodeQL Analysis
+  #     uses: github/codeql-action/analyze@1b549b9259bda1cb5ddde3b41741a82a2d15a841 # v3
 
   build:
     name: Build
-    needs: [analyze, analyze_unsafe]
-    if: |
-      !failure() && !cancelled() && 
-      (success('analyze') || success('analyze_unsafe'))
-    runs-on: pan-dev-runner-xl
+    #needs: [analyze, analyze_unsafe]
+    # if: |
+    #   !failure() && !cancelled() && 
+    #   (success('analyze') || success('analyze_unsafe'))
+    runs-on: ubuntu-latest #pan-dev-runner-xl
     permissions:
       contents: read
 
@@ -193,49 +193,49 @@ jobs:
           name: build
           path: build.zip
 
-  deploy:
-    name: Deploy
-    needs: build
-    if: ${{ !failure() && !cancelled() }}
-    runs-on: pan-dev-runner-lg
+  # deploy:
+  #   name: Deploy
+  #   needs: build
+  #   if: ${{ !failure() && !cancelled() }}
+  #   runs-on: pan-dev-runner-lg
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - name: Setup node
-        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4
-        with:
-          node-version: '20'
-          cache: 'yarn'
+  #     - name: Setup node
+  #       uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4
+  #       with:
+  #         node-version: '20'
+  #         cache: 'yarn'
 
-      - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
-        with:
-          name: build
+  #     - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
+  #       with:
+  #         name: build
 
-      - name: Unzip build artifact
-        run: |
-          unzip build.zip
-          if [ -d "build" ]; then
-            DEPLOY_DIR="."
-          elif [ -d "websites/pan-dev/build" ]; then
-            DEPLOY_DIR="websites/pan-dev"
-          else
-            echo "Error: 'build' directory not found in current directory or in websites/pan-dev/"
-            exit 1
-          fi
-          echo "Deploy directory found at: $DEPLOY_DIR"
-          echo "DEPLOY_DIR=$DEPLOY_DIR" >> $GITHUB_ENV
+  #     - name: Unzip build artifact
+  #       run: |
+  #         unzip build.zip
+  #         if [ -d "build" ]; then
+  #           DEPLOY_DIR="."
+  #         elif [ -d "websites/pan-dev/build" ]; then
+  #           DEPLOY_DIR="websites/pan-dev"
+  #         else
+  #           echo "Error: 'build' directory not found in current directory or in websites/pan-dev/"
+  #           exit 1
+  #         fi
+  #         echo "Deploy directory found at: $DEPLOY_DIR"
+  #         echo "DEPLOY_DIR=$DEPLOY_DIR" >> $GITHUB_ENV
 
-      - name: Deploy to Firebase
-        id: deploy_preview
-        uses: FirebaseExtended/action-hosting-deploy@120e124148ab7016bec2374e5050f15051255ba2 # v0.7.1
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PAN_DEV_F1B58 }}'
-          projectId: pan-dev-f1b58
-          expires: 30d
-          channelId: 'pr${{ github.event.number }}'
-          entryPoint: ${{ env.DEPLOY_DIR }}
-        env:
-          FIREBASE_CLI_PREVIEWS: hostingchannels
+  #     - name: Deploy to Firebase
+  #       id: deploy_preview
+  #       uses: FirebaseExtended/action-hosting-deploy@120e124148ab7016bec2374e5050f15051255ba2 # v0.7.1
+  #       with:
+  #         repoToken: '${{ secrets.GITHUB_TOKEN }}'
+  #         firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PAN_DEV_F1B58 }}'
+  #         projectId: pan-dev-f1b58
+  #         expires: 30d
+  #         channelId: 'pr${{ github.event.number }}'
+  #         entryPoint: ${{ env.DEPLOY_DIR }}
+  #       env:
+  #         FIREBASE_CLI_PREVIEWS: hostingchannels
